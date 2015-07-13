@@ -80,6 +80,14 @@ describe('ngIdle', function() {
         }).toThrow(expected);
       });
 
+      it('titleDisabled() should update defaults', function() {
+        expect(IdleProvider).not.toBeUndefined();
+
+        IdleProvider.titleDisabled(true);
+
+        expect(create()._options().titleDisabled).toBe(true);
+      });
+
       it('autoResume() should interpret false as off', function() {
         expect(IdleProvider).not.toBeUndefined();
 
@@ -161,6 +169,16 @@ describe('ngIdle', function() {
       it ('getIdle() should return the current idle value', function(){
         Idle.setIdle(100);
         expect(Idle.getIdle()).toBe(100);
+      });
+
+      it ('setTitleDisabled() should update option.titleDisabled', function() {
+        Idle.setTitleDisabled(true);
+        expect(Idle._options().titleDisabled).toBe(true);
+      });
+
+      it ('isTitleDisabled() should return the current titleDisabled value', function() {
+        Idle.setTitleDisabled(true);
+        expect(Idle.isTitleDisabled()).toBe(true);
       });
 
       it ('getTimeout() should return the current timeout value', function(){
@@ -358,7 +376,8 @@ describe('ngIdle', function() {
 
         // the original call to start watching
         Idle.watch();
-        expect($rootScope.$broadcast).not.toHaveBeenCalled();
+        expect($rootScope.$broadcast).not.toHaveBeenCalledWith('IdleEnd');
+        expect($rootScope.$broadcast).not.toHaveBeenCalledWith('IdleStart');
         Idle.watch.reset();
 
         // a subsequent call represents an interrupt
@@ -510,7 +529,8 @@ describe('ngIdle', function() {
 
         // the original call to start watching
         Idle.watch();
-        expect($rootScope.$broadcast).not.toHaveBeenCalled();
+        expect($rootScope.$broadcast).not.toHaveBeenCalledWith('IdleStart');
+        expect($rootScope.$broadcast).not.toHaveBeenCalledWith('IdleEnd');;
         Idle.watch.reset();
 
         // a subsequent call represents an interrupt

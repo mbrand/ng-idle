@@ -5,7 +5,8 @@ angular.module('ngIdle.idle', ['ngIdle.keepalive', 'ngIdle.localStorage'])
       timeout: 30, // in seconds (default is 30sec)
       autoResume: 'idle', // lets events automatically resume (unsets idle state/resets warning)
       interrupt: 'mousemove keydown DOMMouseScroll mousewheel mousedown touchstart touchmove scroll',
-      keepalive: true
+      keepalive: true,
+      titleDisabled: false // disable changes in document's title
     };
 
     /**
@@ -26,6 +27,10 @@ angular.module('ngIdle.idle', ['ngIdle.keepalive', 'ngIdle.localStorage'])
       if (seconds <= 0) throw new Error('Idle must be a value in seconds, greater than 0.');
 
       options.idle = seconds;
+    };
+
+    var setTitleDisabled = this.titleDisabled = function(disabled) {
+      options.titleDisabled = disabled === true;
     };
 
     this.autoResume = function(value) {
@@ -143,6 +148,12 @@ angular.module('ngIdle.idle', ['ngIdle.keepalive', 'ngIdle.localStorage'])
           setIdle: function(seconds) {
             changeOption(this, setIdle, seconds);
           },
+          setTitleDisabled: function(disabled) {
+            changeOption(this, setTitleDisabled, disabled);
+          },
+          isTitleDisabled: function() {
+            return options.titleDisabled;
+          },
           setTimeout: function(seconds) {
             changeOption(this, setTimeout, seconds);
           },
@@ -195,8 +206,20 @@ angular.module('ngIdle.idle', ['ngIdle.keepalive', 'ngIdle.localStorage'])
           }
         };
 
-        $document.find('body').on(options.interrupt, function() {
-          svc.interrupt();
+        $document.find('body').on(options.interrupt, function(event) {
+          /*
+            note:
+              webkit fires fake mousemove events when the user has done nothing, so the idle will never time out while the cursor is over the webpage
+              Original webkit bug report which caused this issue:
+                https://bugs.webkit.org/show_bug.cgi?id=17052
+              Chromium bug reports for issue:
+                https://code.google.com/p/chromium/issues/detail?id=5598
+                https://code.google.com/p/chromium/issues/detail?id=241476
+                https://code.google.com/p/chromium/issues/detail?id=317007
+          */
+          if (event.type !== 'mousemove' || (event.movementX || event.movementY)) {
+            svc.interrupt();
+          }
         });
 
         var wrap = function(event) {

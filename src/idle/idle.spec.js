@@ -376,7 +376,8 @@ describe('ngIdle', function() {
 
         // the original call to start watching
         Idle.watch();
-        expect($rootScope.$broadcast).not.toHaveBeenCalled();
+        expect($rootScope.$broadcast).not.toHaveBeenCalledWith('IdleEnd');
+        expect($rootScope.$broadcast).not.toHaveBeenCalledWith('IdleStart');
         Idle.watch.reset();
 
         // a subsequent call represents an interrupt
@@ -528,7 +529,8 @@ describe('ngIdle', function() {
 
         // the original call to start watching
         Idle.watch();
-        expect($rootScope.$broadcast).not.toHaveBeenCalled();
+        expect($rootScope.$broadcast).not.toHaveBeenCalledWith('IdleStart');
+        expect($rootScope.$broadcast).not.toHaveBeenCalledWith('IdleEnd');;
         Idle.watch.reset();
 
         // a subsequent call represents an interrupt

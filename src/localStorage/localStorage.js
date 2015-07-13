@@ -1,16 +1,19 @@
-angular.module('ngIdle.localStorage', [])
-  .service('IdleLocalStorage', ['$window', function($window) {
-    var storage = $window.localStorage;
+angular.module('ngIdle.localStorage', ['LocalStorageModule'])
+  .config(['localStorageServiceProvider', function(localStorageServiceProvider) {
+    localStorageServiceProvider.setPrefix('ngIdle')
+  }])
+  .service('IdleLocalStorage', ['localStorageService', function(localStorageService) {
+    var storage = localStorageService;
     
     return {
       set: function(key, value) {
-        storage.setItem('ngIdle.'+key, angular.toJson(value));
+        storage.set(key, value);
       },
       get: function(key) {
-        return angular.fromJson(storage.getItem('ngIdle.'+key));
+        return angular.fromJson(storage.get(key));
       },
       remove: function(key) {
-        storage.removeItem('ngIdle.'+key);
+        storage.remove(key);
       }
     };
   }]);

@@ -286,8 +286,20 @@ angular.module('ngIdle.idle', ['ngIdle.keepalive', 'ngIdle.localStorage'])
           }
         };
 
-        $document.find('body').on(options.interrupt, function() {
-          svc.interrupt();
+        $document.find('body').on(options.interrupt, function(event) {
+          /*
+            note:
+              webkit fires fake mousemove events when the user has done nothing, so the idle will never time out while the cursor is over the webpage
+              Original webkit bug report which caused this issue:
+                https://bugs.webkit.org/show_bug.cgi?id=17052
+              Chromium bug reports for issue:
+                https://code.google.com/p/chromium/issues/detail?id=5598
+                https://code.google.com/p/chromium/issues/detail?id=241476
+                https://code.google.com/p/chromium/issues/detail?id=317007
+          */
+          if (event.type !== 'mousemove' || (event.movementX || event.movementY)) {
+            svc.interrupt();
+          }
         });
 
         var wrap = function(event) {
@@ -415,19 +427,22 @@ angular.module('ngIdle.title', [])
       };
   }]);
 
-angular.module('ngIdle.localStorage', [])
-  .service('IdleLocalStorage', ['$window', function($window) {
-    var storage = $window.localStorage;
+angular.module('ngIdle.localStorage', ['LocalStorageModule'])
+  .config(['localStorageServiceProvider', function(localStorageServiceProvider) {
+    localStorageServiceProvider.setPrefix('ngIdle')
+  }])
+  .service('IdleLocalStorage', ['localStorageService', function(localStorageService) {
+    var storage = localStorageService;
     
     return {
       set: function(key, value) {
-        storage.setItem('ngIdle.'+key, angular.toJson(value));
+        storage.set(key, value);
       },
       get: function(key) {
-        return angular.fromJson(storage.getItem('ngIdle.'+key));
+        return angular.fromJson(storage.get(key));
       },
       remove: function(key) {
-        storage.removeItem('ngIdle.'+key);
+        storage.remove(key);
       }
     };
   }]);
